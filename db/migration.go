@@ -4,7 +4,7 @@ import "log"
 
 func Migrate() {
 	createPilotosTable := `
-	CREATE TABLE IF NOT EXISTS series (
+	CREATE TABLE IF NOT EXISTS pilotos (
 		id             SERIAL PRIMARY KEY,
 		name           VARCHAR(150) NOT NULL,
 		team           VARCHAR(150) NOT NULL,
@@ -19,14 +19,14 @@ func Migrate() {
 	createRatingsTable := `
 	CREATE TABLE IF NOT EXISTS ratings (
 		id         SERIAL PRIMARY KEY,
-		piloto_id  INT NOT NULL REFERENCES series(id) ON DELETE CASCADE,
+		piloto_id  INT NOT NULL REFERENCES pilotos(id) ON DELETE CASCADE,
 		score      INT NOT NULL CHECK (score >= 1 AND score <= 10),
 		comment    TEXT,
 		created_at TIMESTAMP DEFAULT NOW()
 	);`
 
 	if _, err := DB.Exec(createPilotosTable); err != nil {
-		log.Fatalf("error creating series table: %v", err)
+		log.Fatalf("error creating pilotos table: %v", err)
 	}
 
 	if _, err := DB.Exec(createRatingsTable); err != nil {
