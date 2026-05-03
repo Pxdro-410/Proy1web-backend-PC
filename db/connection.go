@@ -12,14 +12,22 @@ import (
 var DB *sql.DB
 
 func Connect() {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "postgres")
-	password := getEnv("DB_PASSWORD", "postgres")
-	dbname := getEnv("DB_NAME", "f1tracker")
+	var dsn string
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	// Conexión mediante Railway para el deploy
+	if url := os.Getenv("DATABASE_URL"); url != "" {
+		dsn = url
+	} else {
+		// Fallback para desarrollo local con variables individuales.
+		host := getEnv("DB_HOST", "localhost")
+		port := getEnv("DB_PORT", "5432")
+		user := getEnv("DB_USER", "postgres")
+		password := getEnv("DB_PASSWORD", "postgres")
+		dbname := getEnv("DB_NAME", "f1tracker")
+
+		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+			host, port, user, password, dbname)
+	}
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
