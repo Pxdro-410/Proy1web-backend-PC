@@ -29,7 +29,7 @@ func idFromPath(r *http.Request, prefix string) (int, error) {
 }
 
 // GET /piloto
-func GetSeries(w http.ResponseWriter, r *http.Request) {
+func GetPilotos(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	page, _ := strconv.Atoi(q.Get("page"))
@@ -105,7 +105,7 @@ func GetSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 // GET /piloto/:id
-func GetSeriesByID(w http.ResponseWriter, r *http.Request) {
+func GetPilotoByID(w http.ResponseWriter, r *http.Request) {
 	id, err := idFromPath(r, "/piloto/")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
@@ -126,7 +126,7 @@ func GetSeriesByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST /piloto
-func CreateSeries(w http.ResponseWriter, r *http.Request) {
+func CreatePiloto(w http.ResponseWriter, r *http.Request) {
 	var input models.CreatePilotoInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
@@ -171,7 +171,7 @@ func CreateSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 // PUT /piloto/:id
-func UpdateSeries(w http.ResponseWriter, r *http.Request) {
+func UpdatePiloto(w http.ResponseWriter, r *http.Request) {
 	id, err := idFromPath(r, "/piloto/")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
@@ -222,7 +222,7 @@ func UpdateSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 // DELETE /piloto/:id
-func DeleteSeries(w http.ResponseWriter, r *http.Request) {
+func DeletePiloto(w http.ResponseWriter, r *http.Request) {
 	id, err := idFromPath(r, "/piloto/")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
