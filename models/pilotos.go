@@ -21,6 +21,7 @@ type CreatePilotoInput struct {
 	Number        int    `json:"number"`
 	Championships int    `json:"championships"`
 	Description   string `json:"description"`
+	ImagePath     string `json:"image_path"`
 }
 
 type UpdatePilotoInput struct {
@@ -30,6 +31,7 @@ type UpdatePilotoInput struct {
 	Number        int    `json:"number"`
 	Championships int    `json:"championships"`
 	Description   string `json:"description"`
+	ImagePath     string `json:"image_path"`
 }
 
 type Rating struct {

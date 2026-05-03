@@ -3,14 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Pxdro-410/Proy1web-backend-PC/db"
 	"github.com/Pxdro-410/Proy1web-backend-PC/models"
@@ -58,7 +54,7 @@ func GetSeries(w http.ResponseWriter, r *http.Request) {
 		order = "ASC"
 	}
 
-	baseQuery := `SELECT id, name, team, nationality, number, championships, description, COALESCE(image_path,'') , created_at FROM pilotos`
+	baseQuery := `SELECT id, name, team, nationality, number, championships, description, COALESCE(image_path,''), created_at FROM pilotos`
 	countQuery := `SELECT COUNT(*) FROM pilotos`
 
 	var args []interface{}
@@ -83,7 +79,7 @@ func GetSeries(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.DB.Query(baseQuery, args...)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "error fetching series")
+		writeError(w, http.StatusInternalServerError, "error fetching pilotos")
 		return
 	}
 	defer rows.Close()
@@ -160,10 +156,10 @@ func CreateSeries(w http.ResponseWriter, r *http.Request) {
 
 	var p models.Piloto
 	err := db.DB.QueryRow(
-		`INSERT INTO pilotos (name, team, nationality, number, championships, description)
-		 VALUES ($1,$2,$3,$4,$5,$6)
+		`INSERT INTO pilotos (name, team, nationality, number, championships, description, image_path)
+		 VALUES ($1,$2,$3,$4,$5,$6,$7)
 		 RETURNING id, name, team, nationality, number, championships, description, COALESCE(image_path,''), created_at`,
-		input.Name, input.Team, input.Nationality, input.Number, input.Championships, input.Description,
+		input.Name, input.Team, input.Nationality, input.Number, input.Championships, input.Description, input.ImagePath,
 	).Scan(&p.ID, &p.Name, &p.Team, &p.Nationality, &p.Number, &p.Championships, &p.Description, &p.ImagePath, &p.CreatedAt)
 
 	if err != nil {
@@ -211,10 +207,10 @@ func UpdateSeries(w http.ResponseWriter, r *http.Request) {
 
 	var p models.Piloto
 	err = db.DB.QueryRow(
-		`UPDATE pilotos SET name=$1, team=$2, nationality=$3, number=$4, championships=$5, description=$6
-		 WHERE id=$7
+		`UPDATE pilotos SET name=$1, team=$2, nationality=$3, number=$4, championships=$5, description=$6, image_path=$7
+		 WHERE id=$8
 		 RETURNING id, name, team, nationality, number, championships, description, COALESCE(image_path,''), created_at`,
-		input.Name, input.Team, input.Nationality, input.Number, input.Championships, input.Description, id,
+		input.Name, input.Team, input.Nationality, input.Number, input.Championships, input.Description, input.ImagePath, id,
 	).Scan(&p.ID, &p.Name, &p.Team, &p.Nationality, &p.Number, &p.Championships, &p.Description, &p.ImagePath, &p.CreatedAt)
 
 	if err != nil {
@@ -246,54 +242,4 @@ func DeleteSeries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// POST /piloto/:id/image
-func UploadImage(w http.ResponseWriter, r *http.Request) {
-	id, err := idFromPath(r, "/piloto/")
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid id")
-		return
-	}
-
-	// 1 MB limit
-	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
-	if err := r.ParseMultipartForm(1 << 20); err != nil {
-		writeError(w, http.StatusBadRequest, "image too large, max 1MB")
-		return
-	}
-
-	file, header, err := r.FormFile("image")
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "field 'image' is required")
-		return
-	}
-	defer file.Close()
-
-	ext := strings.ToLower(filepath.Ext(header.Filename))
-	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
-	if !allowed[ext] {
-		writeError(w, http.StatusBadRequest, "only jpg, png and webp images are allowed")
-		return
-	}
-
-	filename := fmt.Sprintf("%d_%d%s", id, time.Now().Unix(), ext)
-	dst := filepath.Join("uploads", filename)
-
-	out, err := os.Create(dst)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "error saving image")
-		return
-	}
-	defer out.Close()
-	io.Copy(out, file)
-
-	imagePath := "/uploads/" + filename
-	_, err = db.DB.Exec(`UPDATE pilotos SET image_path=$1 WHERE id=$2`, imagePath, id)
-	if err != nil {
-		writeError(w, http.StatusNotFound, "piloto not found")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, map[string]string{"image_path": imagePath})
 }
