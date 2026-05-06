@@ -1,0 +1,41 @@
+services:
+
+  # Base de datos PostgreSQL 
+  db:
+    image: postgres:16-alpine
+    container_name: f1tracker_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-f1tracker}
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"          # Expuesto para poder conectar con DBeaver/pgAdmin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Persiste los datos entre reinicios
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-f1tracker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Backend Go 
+  server:
+    build: .
+    container_name: f1tracker_server
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    depends_on:
+      db:
+        condition: service_healthy   # Espera a que Postgres esté listo
+    environment:
+      PORT:        ${PORT:-8080}
+      DB_HOST:     db
+      DB_PORT:     5432
+      DB_USER:     ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME:     ${DB_NAME:-f1tracker}
+
+volumes:
+  postgres_data:

@@ -1,0 +1,35 @@
+# Binarios compilados 
+server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Variables de entorno 
+.env
+.env.local
+.env.*.local
+
+# Go 
+vendor/
+
+# Docker 
+# Los volúmenes de Docker se crean en el sistema, no en el repo.
+# No hay archivos locales que excluir salvo .env ya listado arriba.
+
+# IDEs y editores 
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo 
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
